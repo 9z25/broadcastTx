@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Tao Broadcaster</title>
+    </head>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/jdriviere/sparkle-css@3.0.0/dist/css/sparkle.min.css">
+
+    <style>
+        body { 
+            background-color: #F4BA70;
+        }
+
+        .header {
+            font-size: large;
+            text-align: center;
+            background-color: #cea46d;
+        }
+        
+        .container {
+            text-align: center;
+        }
+
+        .blockquote {
+            border:solid;
+            background-color: lightgrey;
+            font-size: small;
+            text-align: left;
+            overflow: scroll;
+        }
+
+        .make-dark, .make-dark:hover {
+            margin: 1em;
+        }
+
+        pre {
+            display: block;
+            font-family: monospace;
+            white-space: pre;
+            margin: 1em 0;
+        }
+
+
+        #new-transaction {
+            display: none;
+        }
+
+        #duplicate-transaction {
+            display: none;
+        }
+        #failed-transaction {
+            display: none;
+        }
+
+    </style>
+    <body>
+        <h1 class="header">Broadcast Raw Transaction</h1>
+        <hr/><br/>
+        <div class="container">
+            
+        <textarea class="rawtx-area" rows="10" cols="100%" placeholder="Enter hexadecimal and click decode..." id="rawtx-textarea"></textarea>
+        <button class="button make-dark make-outlined make-block" id="decode">Decode</button>
+        <button class="button make-dark make-outlined make-block" id="broadcast">Broadcast</button>
+
+        <span class="tag make-success" id="new-transaction">New tag</span>
+        <span class="tag make-light" id="duplicate-transaction">Duplicate tag</span>
+        <span class="tag make-danger" id="failed-transaction"><a id="tx-link">Fail tag</a></span>
+
+        <blockquote class="blockquote">
+            <br/>
+            <header class="blockquote-header">
+                // Decoded transaction
+            </header>
+            <br/>
+            <pre id="rawtx"></pre>
+            
+          </blockquote>
+
+        </div>
+        <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+        <script>
+var decode = document.getElementById("decode");
+var broadcast = document.getElementById("broadcast");
+var failTag = document.getElementById("failed-transaction");
+var dupeTag = document.getElementById("duplicate-transaction");
+var successTag = document.getElementById("new-transaction");
+var successLink = document.getElementById("tx-link");
+
+broadcast.disabled = true;
+
+decode.addEventListener("click", function() {
+    var newHex = document.getElementById("rawtx-textarea");
+    if (!newHex.value) {
+        return;
+    };
+    (async () => {
+        var raw = {};
+        raw.tx = newHex.value.toString();
+        const response = await axios({
+            url: 'http://localhost:8001/api/decoderawtransaction/',
+            method: 'post',
+            data: raw,
+        })
+
+        successTag.style.display = "none";
+        dupeTag.style.display = "none";
+        failTag.style.display = "none";
+
+        var blockquote = document.getElementById("rawtx");
+        var rawTx = JSON.parse(response.data);
+        
+        if(rawTx.txid){
+          broadcast.disabled = false;
+        }
+        blockquote.textContent = JSON.stringify(rawTx, null, 2);
+    })()
+})
+
+broadcast.addEventListener("click", function() {
+    var newHex = document.getElementById("rawtx-textarea");
+    if (!newHex.value) {
+        return;
+    }
+
+    ;
+    (async () => {
+        var raw = {};
+        raw.tx = newHex.value.toString();
+        const response = await axios({
+            url: 'http://localhost:8001/api/sendrawtransaction/',
+            method: 'post',
+            data: raw,
+        })
+
+        var newTx = response.data.toString();
+
+        if(successTag.style.display !== "none" ||
+        dupeTag.style.display !== "none" ||
+        failTag.style.display !== "none") {
+
+          successTag.style.display = "none";
+          dupeTag.style.display = "none";
+          failTag.style.display = "none";
+               
+           }
+        if (newTx.includes("transaction already in block")) {
+            var err = JSON.parse(newTx);
+            dupeTag.textContent = err.message;
+            dupeTag.style.display = "inline-block";
+            return;
+        } else if (newTx.includes("TAO decode failed")) {
+            var err = JSON.parse(newTx);
+            failTag.textContent = err.message;
+            failTag.style.display = "inline-block";
+            return;
+        }
+
+        successTag.style.display = "inline-block";
+        successTag.textContent = newTx;
+        successLink.href = "https://taoexplorer.com/tx/" + newTx;
+
+    })()
+})
+
+        </script>
+    </body>
+</html>

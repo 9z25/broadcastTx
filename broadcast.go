@@ -125,9 +125,9 @@ func main() {
 	r.HandleFunc("/api/decoderawtransaction/", DecodeRawTransaction).Methods("POST")
 	handler := cors.Default().Handler(r)
 
-	err := http.ListenAndServeTLS(":8001", "./freshmintrecords_com.crt", "./freshmintrecords.key", handler)
-	if err != nil {
-		log.Fatal("ListenAndServe:", err)
-	}
-	//log.Fatal(http.ListenAndServe(":8001", handler))
+	//err := http.ListenAndServeTLS(":8001", "./freshmintrecords_com.crt", "./freshmintrecords.key", handler)
+	//if err != nil {
+	//	log.Fatal("ListenAndServe:", err)
+	//}
+	log.Fatal(http.ListenAndServe(":8001", handler))
 }

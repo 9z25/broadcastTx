@@ -8,13 +8,14 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/gorilla/mux"
 	"github.com/rs/cors"
 )
 
-const accessToken = "123"
+const accessToken = "003e58c5-56cb-4c86-8d5b-f6f51909097b"
 
 //RawTx struct for handling json post data
 type RawTx struct {
@@ -37,7 +38,37 @@ func GetAddress(w http.ResponseWriter, r *http.Request) {
 		Transport: MyRoundTripper{r: http.DefaultTransport},
 	}
 
-	response, err := client.Get("https://taoexplorer.com/ext/getaddress/TmfMKgMG6B8cXr2sewa91VNNrqw6Q9WFMM")
+	p := strings.Split(r.URL.Path, "/")
+
+	fmt.Println(p[1])
+
+	response, err := client.Get("https://taoexplorer.com/ext/getaddress/" + p[1])
+
+	if err != nil {
+		fmt.Print(err.Error())
+		os.Exit(1)
+	}
+
+	responseData, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println(string(responseData))
+	json.NewEncoder(w).Encode(responseData)
+}
+
+// GetTransaction is for testing
+func GetTransaction(w http.ResponseWriter, r *http.Request) {
+	client := &http.Client{
+		Timeout:   time.Second * 10,
+		Transport: MyRoundTripper{r: http.DefaultTransport},
+	}
+
+	params := mux.Vars(r)
+	txid := params["txid"]
+	fmt.Println(txid)
+
+	response, err := client.Get("http://192.168.0.104:8000/api/gettransaction/" + txid)
 
 	if err != nil {
 		fmt.Print(err.Error())
@@ -69,7 +100,7 @@ func DecodeRawTransaction(w http.ResponseWriter, r *http.Request) {
 	var jsonStr = []byte(d)
 	url := "http://192.168.0.104:8000/api/decoderawtransaction/"
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonStr))
-	req.Header.Set("X-CSRF-Token", "123")
+	req.Header.Set("X-CSRF-Token", accessToken)
 	req.Header.Set("Content-Type", "application/json")
 
 	client := &http.Client{}
@@ -100,7 +131,7 @@ func SendRawTransaction(w http.ResponseWriter, r *http.Request) {
 	var jsonStr = []byte(d)
 	url := "http://192.168.0.104:8000/api/sendrawtransaction/"
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonStr))
-	req.Header.Set("X-CSRF-Token", "123")
+	req.Header.Set("X-CSRF-Token", "125553")
 	req.Header.Set("Content-Type", "application/json")
 
 	client := &http.Client{}
@@ -120,14 +151,15 @@ func main() {
 	r := mux.NewRouter()
 
 	// Route Handlers / Endpoints
-	r.HandleFunc("/api/getaddress/", GetAddress).Methods("GET")
+	r.HandleFunc("/api/getaddress/{address}", GetAddress).Methods("GET")
+	r.HandleFunc("/api/gettransaction/{txid}", GetTransaction).Methods("GET")
 	r.HandleFunc("/api/sendrawtransaction/", SendRawTransaction).Methods("POST")
 	r.HandleFunc("/api/decoderawtransaction/", DecodeRawTransaction).Methods("POST")
 	handler := cors.Default().Handler(r)
 
-	//err := http.ListenAndServeTLS(":8001", "./freshmintrecords_com.crt", "./freshmintrecords.key", handler)
-	//if err != nil {
-	//	log.Fatal("ListenAndServe:", err)
-	//}
+	/*err := http.ListenAndServeTLS(":8001", "./freshmintrecords_com.crt", "./freshmintrecords.key", handler)
+	if err != nil {
+		log.Fatal("ListenAndServe:", err)
+	}*/
 	log.Fatal(http.ListenAndServe(":8001", handler))
 }

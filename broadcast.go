@@ -15,7 +15,7 @@ import (
 	"github.com/rs/cors"
 )
 
-const accessToken = "003e58c5-56cb-4c86-8d5b-f6f51909097b"
+const accessToken = "123"
 
 //RawTx struct for handling json post data
 type RawTx struct {

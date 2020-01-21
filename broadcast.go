@@ -180,7 +180,6 @@ func main() {
 	r.HandleFunc("/api/getaddress/{address}", GetAddress).Methods("GET")
 	r.HandleFunc("/api/gettransaction/{txid}", GetTransaction).Methods("GET")
 	r.HandleFunc("/api/getrawtransaction/{txid}", GetRawTransaction).Methods("GET")
-	r.HandleFunc("/api/sendrawtransaction/{txid}", GetRawTransaction).Methods("GET")
 	r.HandleFunc("/api/sendrawtransaction/", SendRawTransaction).Methods("POST")
 	r.HandleFunc("/api/decoderawtransaction/", DecodeRawTransaction).Methods("POST")
 	handler := cors.Default().Handler(r)

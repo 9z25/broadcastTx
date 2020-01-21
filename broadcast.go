@@ -83,6 +83,32 @@ func GetTransaction(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(responseData)
 }
 
+// GetRawTransaction is for testing
+func GetRawTransaction(w http.ResponseWriter, r *http.Request) {
+	client := &http.Client{
+		Timeout:   time.Second * 10,
+		Transport: MyRoundTripper{r: http.DefaultTransport},
+	}
+
+	params := mux.Vars(r)
+	txid := params["txid"]
+	fmt.Println(txid)
+
+	response, err := client.Get("http://192.168.0.104:8000/api/getrawtransaction/" + txid)
+
+	if err != nil {
+		fmt.Print(err.Error())
+		os.Exit(1)
+	}
+
+	responseData, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println(string(responseData))
+	json.NewEncoder(w).Encode(responseData)
+}
+
 // DecodeRawTransaction returns a json object of decoded tx
 func DecodeRawTransaction(w http.ResponseWriter, r *http.Request) {
 
@@ -153,6 +179,8 @@ func main() {
 	// Route Handlers / Endpoints
 	r.HandleFunc("/api/getaddress/{address}", GetAddress).Methods("GET")
 	r.HandleFunc("/api/gettransaction/{txid}", GetTransaction).Methods("GET")
+	r.HandleFunc("/api/getrawtransaction/{txid}", GetRawTransaction).Methods("GET")
+	r.HandleFunc("/api/sendrawtransaction/{txid}", GetRawTransaction).Methods("GET")
 	r.HandleFunc("/api/sendrawtransaction/", SendRawTransaction).Methods("POST")
 	r.HandleFunc("/api/decoderawtransaction/", DecodeRawTransaction).Methods("POST")
 	handler := cors.Default().Handler(r)

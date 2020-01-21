@@ -190,26 +190,11 @@ func SendRawTransaction(w http.ResponseWriter, r *http.Request) {
 // GetUnspent test
 func GetUnspents(w http.ResponseWriter, r *http.Request) {
 	var url = "https://taoexplorer.com/ext/getaddress/"
-	var hash RawTx
+	params := mux.Vars(r)
+	addr := params["address"]
 
-	resp, err := http.Get(url)
-	if err != nil {
-		panic(err)
-	}
 
-	defer resp.Body.Close()
-
-	d, err := ioutil.ReadAll(r.Body)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	if err := json.Unmarshal(d, &hash); err != nil {
-		panic(err)
-	}
-	fmt.Println(hash)
-
-	req, _ := http.NewRequest("GET", url+hash.Tx, nil)
+	req, _ := http.NewRequest("GET", url+addr, nil)
 
 	client := &http.Client{}
 

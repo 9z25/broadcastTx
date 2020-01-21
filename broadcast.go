@@ -263,8 +263,8 @@ func main() {
 	r.HandleFunc("/api/getrawtransaction/{txid}", GetRawTransaction).Methods("GET")
 	r.HandleFunc("/api/sendrawtransaction/", SendRawTransaction).Methods("POST")
 	r.HandleFunc("/api/decoderawtransaction/", DecodeRawTransaction).Methods("POST")
-	r.HandleFunc("/api/getunspents/", GetUnspents).Methods("GET")
-	r.HandleFunc("/api/gettxdata/", GetTxData).Methods("GET")
+	r.HandleFunc("/api/getunspents/{address}", GetUnspents).Methods("GET")
+	r.HandleFunc("/api/gettxdata/{txid}", GetTxData).Methods("GET")
 	handler := cors.Default().Handler(r)
 
 	err := http.ListenAndServeTLS(":8001", "./freshmintrecords_com.crt", "./freshmintrecords.key", handler)

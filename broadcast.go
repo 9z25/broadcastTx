@@ -22,6 +22,22 @@ type RawTx struct {
 	Tx string `json:"tx"`
 }
 
+
+// LastTx
+type LastTx struct {
+	Type      string `json:"type"`
+	Addresses string `json:"addresses"`
+}
+
+// TaoExplorer
+type TaoExplorer struct {
+	Address  string   `json:"address"`
+	Sent     int      `json:"sent"`
+	Received string   `json:"received"`
+	Balance  string   `json:"balance"`
+	lastTxs  []LastTx `json:"last_txs"`
+}
+
 type MyRoundTripper struct {
 	r http.RoundTripper
 }
@@ -169,6 +185,71 @@ func SendRawTransaction(w http.ResponseWriter, r *http.Request) {
 
 	body, _ := ioutil.ReadAll(resp.Body)
 	json.NewEncoder(w).Encode(string(body))
+}
+
+// GetUnspent test
+func GetUnspents(w http.ResponseWriter, r *http.Request) {
+	var url = "https://taoexplorer.com/ext/getaddress/"
+	var hash RawTx
+
+	resp, err := http.Get(url)
+	if err != nil {
+		panic(err)
+	}
+
+	defer resp.Body.Close()
+
+	d, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	if err := json.Unmarshal(d, &hash); err != nil {
+		panic(err)
+	}
+	fmt.Println(hash)
+
+	req, _ := http.NewRequest("GET", url+hash.Tx, nil)
+
+	client := &http.Client{}
+
+	res, _ := client.Do(req)
+
+	defer res.Body.Close()
+	body, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	fmt.Println("test")
+	fmt.Println(body)
+	var fmNode TaoExplorer
+	json.Unmarshal(body, &fmNode)
+
+}
+
+// GetTxData test
+func GetTxData(w http.ResponseWriter, r *http.Request) {
+	var url = "https://taoexplorer.com/api/getrawtransaction?txid="
+	params := mux.Vars(r)
+	txid := params["txid"]
+
+	req, _ := http.NewRequest("GET", url+txid, nil)
+
+	client := &http.Client{}
+
+	res, _ := client.Do(req)
+
+	defer res.Body.Close()
+	body, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	fmt.Println(body)
+	var fmNode TaoExplorer
+	json.Unmarshal(body, &fmNode)
+
 }
 
 func main() {

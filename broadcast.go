@@ -173,7 +173,7 @@ func SendRawTransaction(w http.ResponseWriter, r *http.Request) {
 	var jsonStr = []byte(d)
 	url := "http://192.168.0.104:8000/api/sendrawtransaction/"
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonStr))
-	req.Header.Set("X-CSRF-Token", "125553")
+	req.Header.Set("X-CSRF-Token", accessToken)
 	req.Header.Set("Content-Type", "application/json")
 
 	client := &http.Client{}
@@ -205,11 +205,7 @@ func GetUnspents(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		fmt.Println(err)
 	}
-
-	fmt.Println("test")
-	fmt.Println(body)
-	var fmNode TaoExplorer
-	json.Unmarshal(body, &fmNode)
+	json.NewEncoder(w).Encode(body)
 
 }
 
@@ -231,9 +227,7 @@ func GetTxData(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(err)
 	}
 
-	fmt.Println(body)
-	var fmNode TaoExplorer
-	json.Unmarshal(body, &fmNode)
+	json.NewEncoder(w).Encode(string(body))
 
 }
 

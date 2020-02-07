@@ -17,11 +17,12 @@ import (
 
 const accessToken = "123"
 
+const taoNode = "http://192.168.0.100:8000"
+
 //RawTx struct for handling json post data
 type RawTx struct {
 	Tx string `json:"tx"`
 }
-
 
 // LastTx
 type LastTx struct {
@@ -84,7 +85,7 @@ func GetTransaction(w http.ResponseWriter, r *http.Request) {
 	txid := params["txid"]
 	fmt.Println(txid)
 
-	response, err := client.Get("http://192.168.0.104:8000/api/gettransaction/" + txid)
+	response, err := client.Get(taoNode + "/api/gettransaction/" + txid)
 
 	if err != nil {
 		fmt.Print(err.Error())
@@ -110,7 +111,7 @@ func GetRawTransaction(w http.ResponseWriter, r *http.Request) {
 	txid := params["txid"]
 	fmt.Println(txid)
 
-	response, err := client.Get("http://192.168.0.104:8000/api/getrawtransaction/" + txid)
+	response, err := client.Get(taoNode + "/api/getrawtransaction/" + txid)
 
 	if err != nil {
 		fmt.Print(err.Error())
@@ -140,7 +141,7 @@ func DecodeRawTransaction(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var jsonStr = []byte(d)
-	url := "http://192.168.0.104:8000/api/decoderawtransaction/"
+	url := taoNode + "/api/decoderawtransaction/"
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonStr))
 	req.Header.Set("X-CSRF-Token", accessToken)
 	req.Header.Set("Content-Type", "application/json")
@@ -171,7 +172,7 @@ func SendRawTransaction(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var jsonStr = []byte(d)
-	url := "http://192.168.0.104:8000/api/sendrawtransaction/"
+	url := taoNode + "/api/sendrawtransaction/"
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonStr))
 	req.Header.Set("X-CSRF-Token", accessToken)
 	req.Header.Set("Content-Type", "application/json")
@@ -192,7 +193,6 @@ func GetUnspents(w http.ResponseWriter, r *http.Request) {
 	var url = "https://taoexplorer.com/ext/getaddress/"
 	params := mux.Vars(r)
 	addr := params["address"]
-
 
 	req, _ := http.NewRequest("GET", url+addr, nil)
 
